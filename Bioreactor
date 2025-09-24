@@ -1,0 +1,47 @@
+from scipy.integrate import solve_ivp
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define the Monod kinetics model
+def monod_batch(t, y, mu_max, Ks, Yxs, S0):
+    S, X = y  # S: Substrate concentration, X: Biomass concentration
+
+    # Monod equation for specific growth rate
+    mu = mu_max * S / (Ks + S)
+
+    # Differential equations for substrate and biomass
+    dSdt = -mu/Yxs * X
+    dXdt = mu * X
+
+    return [dSdt, dXdt]
+
+# Define parameters
+mu_max = 0.5  # Maximum specific growth rate (1/hr)
+Ks = 1.0      # Substrate saturation constant (g/L)
+Yxs = 0.6     # Biomass yield on substrate (g biomass/g substrate)
+S0 = 10.0     # Initial substrate concentration (g/L)
+X0 = 0.1      # Initial biomass concentration (g/L)
+t_span = [0, 24] # Time span for simulation (hours)
+t_eval = np.linspace(t_span[0], t_span[1], 100) # Time points to evaluate
+
+# Initial conditions
+y0 = [S0, X0]
+
+# Solve the ODEs
+sol = solve_ivp(monod_batch, t_span, y0, args=(mu_max, Ks, Yxs, S0), dense_output=True, t_eval=t_eval)
+
+# Extract results
+t = sol.t
+S = sol.y[0]
+X = sol.y[1]
+
+# Plot the results
+plt.figure(figsize=(10, 6))
+plt.plot(t, S, label='Substrate')
+plt.plot(t, X, label='Biomass')
+plt.xlabel('Time (hr)')
+plt.ylabel('Concentration (g/L)')
+plt.title('Batch Bioreactor Simulation with Monod Kinetics')
+plt.legend()
+plt.grid(True)
+plt.show()
